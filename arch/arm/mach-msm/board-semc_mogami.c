@@ -2567,7 +2567,6 @@ struct bq27520_platform_data bq27520_platform_data = {
 	.polling_lower_capacity = FULLY_CHARGED_AND_RECHARGE_CAP,
 	.polling_upper_capacity = 100,
 	.udatap = bq27520_block_table,
-	.ocv_issue_capacity_threshold = 20,
 #ifdef CONFIG_BATTERY_CHARGALG
 	.disable_algorithm = battery_chargalg_disable,
 #endif
