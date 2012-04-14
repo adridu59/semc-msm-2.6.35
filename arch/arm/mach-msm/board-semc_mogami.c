@@ -4448,59 +4448,12 @@ static void __init msm7x30_allocate_memory_regions(void)
 	void *addr;
 	unsigned long size;
 
-	size = pmem_sf_size;
-	if (size) {
-		addr = alloc_bootmem(size);
-		android_pmem_pdata.start = __pa(addr);
-		android_pmem_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for sf "
-			"pmem arena\n", size, addr, __pa(addr));
-	}
-
 	size = fb_size ? : MSM_FB_SIZE;
 	addr = alloc_bootmem(size);
 	msm_fb_resources[0].start = __pa(addr);
 	msm_fb_resources[0].end = msm_fb_resources[0].start + size - 1;
 	pr_info("allocating %lu bytes at %p (%lx physical) for fb\n",
 		size, addr, __pa(addr));
-
-	size = pmem_adsp_size;
-
-	if (size) {
-		addr = alloc_bootmem(size);
-		android_pmem_adsp_pdata.start = __pa(addr);
-		android_pmem_adsp_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for adsp "
-			"pmem arena\n", size, addr, __pa(addr));
-	}
-
-	size = pmem_adsp_size;
-
-	if (size) {
-		android_pmem_adsp_cached_pdata.start = __pa(addr);
-		android_pmem_adsp_cached_pdata.size = size;
-		pr_info("setting %lu bytes at %p (%lx physical) for adsp cached "
-			"pmem arena\n", size, addr, __pa(addr));
-	}
-
-	size = pmem_swiqi_size;
-
-	if (size) {
-		addr = alloc_bootmem(size);
-		android_pmem_swiqi_pdata.start = __pa(addr);
-		android_pmem_swiqi_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for swiqi "
-			"pmem arena\n", size, addr, __pa(addr));
-	}
-
-	size = pmem_camera_size;
-	if (size) {
-		addr = alloc_bootmem(size);
-		android_pmem_camera_pdata.start = __pa(addr);
-		android_pmem_camera_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for camera "
-			"pmem arena\n", size, addr, __pa(addr));
-	}
 
 	size = pmem_audio_size;
 	if (size) {
@@ -4518,6 +4471,50 @@ static void __init msm7x30_allocate_memory_regions(void)
 		android_pmem_kernel_ebi1_pdata.size = size;
 		pr_info("allocating %lu bytes at %p (%lx physical) for kernel"
 			" ebi1 pmem arena\n", size, addr, __pa(addr));
+	}
+
+	size = pmem_sf_size;
+	if (size) {
+		addr = alloc_bootmem(size);
+		android_pmem_pdata.start = __pa(addr);
+		android_pmem_pdata.size = size;
+		pr_info("allocating %lu bytes at %p (%lx physical) for sf "
+			"pmem arena\n", size, addr, __pa(addr));
+	}
+
+	size = pmem_adsp_size;
+	if (size) {
+		addr = alloc_bootmem(size);
+		android_pmem_adsp_pdata.start = __pa(addr);
+		android_pmem_adsp_pdata.size = size;
+		pr_info("allocating %lu bytes at %p (%lx physical) for adsp "
+			"pmem arena\n", size, addr, __pa(addr));
+	}
+
+	size = pmem_adsp_size;
+	if (size) {
+		android_pmem_adsp_cached_pdata.start = __pa(addr);
+		android_pmem_adsp_cached_pdata.size = size;
+		pr_info("setting %lu bytes at %p (%lx physical) for adsp cached "
+			"pmem arena\n", size, addr, __pa(addr));
+	}
+
+	size = pmem_swiqi_size;
+	if (size) {
+		addr = alloc_bootmem(size);
+		android_pmem_swiqi_pdata.start = __pa(addr);
+		android_pmem_swiqi_pdata.size = size;
+		pr_info("allocating %lu bytes at %p (%lx physical) for swiqi "
+			"pmem arena\n", size, addr, __pa(addr));
+	}
+
+	size = pmem_camera_size;
+	if (size) {
+		addr = alloc_bootmem(size);
+		android_pmem_camera_pdata.start = __pa(addr);
+		android_pmem_camera_pdata.size = size;
+		pr_info("allocating %lu bytes at %p (%lx physical) for camera "
+			"pmem arena\n", size, addr, __pa(addr));
 	}
 
 }
