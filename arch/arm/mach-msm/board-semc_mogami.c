@@ -3134,7 +3134,9 @@ static int hsusb_rpc_connect(int connect)
 		return msm_hsusb_rpc_close();
 }
 
-static struct msm_hsusb_gadget_platform_data msm_gadget_pdata;
+static struct msm_hsusb_gadget_platform_data msm_gadget_pdata = {
+	.is_phy_status_timer_on = 1,
+};
 
 static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 {
