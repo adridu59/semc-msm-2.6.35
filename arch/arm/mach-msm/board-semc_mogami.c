@@ -1734,6 +1734,7 @@ static struct usb_mass_storage_platform_data mass_storage_pdata = {
 	.vendor	= "SEMC",
 	.product = "Mass Storage",
 	.release = 0x0100,
+	.can_stall = 1,
 
 	.cdrom_nluns = 1,
 	.cdrom_vendor = "SEMC",
@@ -3373,10 +3374,6 @@ static struct kgsl_cpufreq_voter kgsl_cpufreq_voter = {
 };
 
 static struct kgsl_core_platform_data kgsl_core_pdata = {
-	.imem_clk_name = {
-		.clk = "imem_clk",
-		.pclk = NULL,
-	};
 
 	.pt_va_base = 0x66000000,
 #ifdef CONFIG_KGSL_PER_PROCESS_PAGE_TABLE
@@ -3409,6 +3406,10 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 			.clk = "grp_clk",
 			.pclk = "grp_pclk",
 		},
+	},
+	.imem_clk_name = {
+		.clk = "imem_clk",
+		.pclk = NULL,
 	},
 };
 
