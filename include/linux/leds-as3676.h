@@ -108,12 +108,14 @@ enum as3676_sinks {
 };
 
 enum as3676_led_flags {
-	AS3676_FLAG_BLINK	= (1 << 0), /* should have blinking */
-	AS3676_FLAG_ALS_GROUP1	= (1 << 1), /* connected to the ALS group1 */
-	AS3676_FLAG_ALS_GROUP2	= (1 << 2), /* connected to the ALS group2 */
-	AS3676_FLAG_ALS_GROUP3	= (1 << 3), /* connected to the ALS group3 */
-	AS3676_FLAG_PWM_CTRL	= (1 << 4),
-	AS3676_FLAG_DLS	= (1 << 5), /* should be connected to the DLS */
+	AS3676_FLAG_RGB		= (1 << 0), /* is RGB */
+	AS3676_FLAG_BLINK	= (1 << 1), /* should have blinking */
+	AS3676_FLAG_ALS_GROUP1	= (1 << 2), /* connected to the ALS group1 */
+	AS3676_FLAG_ALS_GROUP2	= (1 << 3), /* connected to the ALS group2 */
+	AS3676_FLAG_ALS_GROUP3	= (1 << 4), /* connected to the ALS group3 */
+	AS3676_FLAG_PWM_INIT	= (1 << 5), /* should turn on slowly once */
+	AS3676_FLAG_PWM_CTRL	= (1 << 6),
+	AS3676_FLAG_DLS	= (1 << 7), /* should be connected to the DLS */
 
 	AS3676_FLAG_ALS	= AS3676_FLAG_ALS_GROUP1,
 	AS3676_FLAG_ALS_MASK	= (AS3676_FLAG_ALS_GROUP1 |
