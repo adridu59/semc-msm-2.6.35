@@ -3371,14 +3371,19 @@ static struct kgsl_cpufreq_voter kgsl_cpufreq_voter = {
 	},
 };
 
-static struct kgsl_core_platform_data kgsl_core_pdata = {
-
-	.pt_va_base = 0x66000000,
-#ifdef CONFIG_KGSL_PER_PROCESS_PAGE_TABLE
-	.pt_va_size = SZ_32M,
-#else
-	.pt_va_size = SZ_128M,
-#endif
+static struct resource kgsl_3d0_resources[] = {
+	{
+		.name  = KGSL_3D0_REG_MEMORY,
+		.start = 0xA3500000, /* 3D GRP address */
+		.end = 0xA351ffff,
+		.flags = IORESOURCE_MEM,
+	},
+	{
+		.name = KGSL_3D0_IRQ,
+		.start = INT_GRP_3D,
+		.end = INT_GRP_3D,
+		.flags = IORESOURCE_IRQ,
+	},
 };
 
 static struct kgsl_device_platform_data kgsl_3d0_pdata = {
@@ -3411,6 +3416,32 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	},
 };
 
+static struct platform_device msm_kgsl_3d0 = {
+       .name = "kgsl-3d0",
+       .id = 0,
+       .num_resources = ARRAY_SIZE(kgsl_3d0_resources),
+       .resource = kgsl_3d0_resources,
+       .dev = {
+               .platform_data = &kgsl_3d0_pdata,
+       },
+};
+
+#ifdef CONFIG_MSM_KGSL_2D
+static struct resource kgsl_2d0_resources[] = {
+       {
+               .name = KGSL_2D0_REG_MEMORY,
+               .start = 0xA3900000, /* Z180 base address */
+               .end = 0xA3900FFF,
+               .flags = IORESOURCE_MEM,
+       },
+       {
+               .name = KGSL_2D0_IRQ,
+               .start = INT_GRP_2D,
+               .end = INT_GRP_2D,
+               .flags = IORESOURCE_IRQ,
+       },
+};
+
 static struct kgsl_device_platform_data kgsl_2d0_pdata = {
 	.pwr_data = {
 		.pwrlevel = {
@@ -3428,61 +3459,22 @@ static struct kgsl_device_platform_data kgsl_2d0_pdata = {
 	},
 	.clk = {
 		.name = {
-#ifdef CONFIG_MSM_KGSL_2D
 			.clk = "grp_2d_clk",
 			.pclk = "grp_2d_pclk",
-#else
-			.clk = NULL,
-#endif
 		},
 	},
 };
 
-static struct kgsl_device_platform_data kgsl_2d1_pdata;
-
-static struct kgsl_platform_data kgsl_pdata = {
-	.core = &kgsl_core_pdata,
-	.dev_3d0 = &kgsl_3d0_pdata,
-	.dev_2d0 = &kgsl_2d0_pdata,
-	.dev_2d1 = &kgsl_2d1_pdata,
-};
-
-static struct resource kgsl_resources[] = {
-	{
-		.name = "kgsl_reg_memory",
-		.start = 0xA3500000, /* 3D GRP address */
-		.end = 0xA351ffff,
-		.flags = IORESOURCE_MEM,
-	},
-	{
-		.name = "kgsl_yamato_irq",
-		.start = INT_GRP_3D,
-		.end = INT_GRP_3D,
-		.flags = IORESOURCE_IRQ,
-	},
-	{
-		.name = "kgsl_2d0_reg_memory",
-		.start = 0xA3900000, /* Z180 base address */
-		.end = 0xA3900FFF,
-		.flags = IORESOURCE_MEM,
-	},
-	{
-		.name  = "kgsl_2d0_irq",
-		.start = INT_GRP_2D,
-		.end = INT_GRP_2D,
-		.flags = IORESOURCE_IRQ,
-	},
-};
-
-static struct platform_device msm_device_kgsl = {
-	.name = "kgsl",
-	.id = -1,
-	.num_resources = ARRAY_SIZE(kgsl_resources),
-	.resource = kgsl_resources,
-	.dev = {
-		.platform_data = &kgsl_pdata,
-	},
-};
+static struct platform_device msm_kgsl_2d0 = {
+       .name = "kgsl-2d0",
+       .id = 0,
+       .num_resources = ARRAY_SIZE(kgsl_2d0_resources),
+       .resource = kgsl_2d0_resources,
+        .dev = {
+               .platform_data = &kgsl_2d0_pdata,
+        },
+ };
+#endif
 
 static int msm_fb_mddi_sel_clk(u32 *clk_rate)
 {
@@ -3726,7 +3718,10 @@ static struct platform_device *devices[] __initdata = {
 	&msm_aux_pcm_device,
 	&msm_device_adspdec,
 	&qup_device_i2c,
-	&msm_device_kgsl,
+	&msm_kgsl_3d0,
+#ifdef CONFIG_MSM_KGSL_2D
+	&msm_kgsl_2d0,
+#endif
 #ifdef CONFIG_SEMC_CAMERA_MODULE
 	&msm_camera_sensor_semc_camera,
 #endif
