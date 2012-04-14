@@ -3655,7 +3655,7 @@ static void __init msm_fb_add_devices(void)
 static struct resource ram_console_resources[] = {
 	[0] = {
 		.start  = MSM_RAM_CONSOLE_START,
-		.end    = MSM_RAM_CONSOLE_START+MSM_RAM_CONSOLE_SIZE-1,
+		.end    = MSM_RAM_CONSOLE_START + MSM_RAM_CONSOLE_SIZE - 1,
 		.flags  = IORESOURCE_MEM,
 	},
 };
@@ -3663,18 +3663,9 @@ static struct resource ram_console_resources[] = {
 static struct platform_device ram_console_device = {
 	.name           = "ram_console",
 	.id             = -1,
+	.num_resources  = ARRAY_SIZE(ram_console_resources),
+	.resource       = ram_console_resources,
 };
-
-static void ram_console_reserve_mem(void)
-{
-	if(reserve_bootmem(MSM_RAM_CONSOLE_START, MSM_RAM_CONSOLE_SIZE,
-						BOOTMEM_EXCLUSIVE)) {
-		printk(KERN_ERR "ram_console reserve memory failed\n");
-		return;
-	}
-	ram_console_device.num_resources  = ARRAY_SIZE(ram_console_resources);
-	ram_console_device.resource       = ram_console_resources;
-}
 #endif
 
 #ifdef CONFIG_PMIC_TIME
