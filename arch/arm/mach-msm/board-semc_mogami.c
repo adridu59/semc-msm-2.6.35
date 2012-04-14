@@ -3881,12 +3881,12 @@ static void __init qup_device_i2c_init(void)
 	}
 }
 
-static struct msm_ssbi_platform_data msm_i2c_ssbi6_pdata = {
+static struct msm_i2c_ssbi_platform_data msm_i2c_ssbi6_pdata = {
 	.rsl_id = "D:PMIC_SSBI",
 	.controller_type = MSM_SBI_CTRL_SSBI2,
 };
 
-static struct msm_ssbi_platform_data msm_i2c_ssbi7_pdata = {
+static struct msm_i2c_ssbi_platform_data msm_i2c_ssbi7_pdata = {
 	.rsl_id = "D:CODEC_SSBI",
 	.controller_type = MSM_SBI_CTRL_SSBI,
 };
