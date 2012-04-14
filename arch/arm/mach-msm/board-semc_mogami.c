@@ -4524,9 +4524,6 @@ static void __init msm7x30_map_io(void)
 {
 	msm_shared_ram_phys = 0x00100000;
 	msm_map_msm7x30_io();
-#ifdef CONFIG_ANDROID_RAM_CONSOLE
-	ram_console_reserve_mem();
-#endif
 	msm7x30_allocate_memory_regions();
 }
 
