@@ -2446,6 +2446,10 @@ static struct cyttsp_platform_data cyttsp_data = {
 #ifdef CONFIG_TOUCHSCREEN_CYTTSP_KEY
 	.cust_spec = cyttsp_key_rpc_callback,
 #endif
+	.panel_maxx = 479,
+	.panel_maxy = 799,
+	.disp_maxx = 479,
+	.disp_maxy = 799,
 	.flags = 0,
 	.gen = CY_GEN3,
 	.use_st = 0,
