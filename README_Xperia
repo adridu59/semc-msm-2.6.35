@@ -2,3 +2,9 @@ Configuration files can be found in arch/arm/configs.
 
     Xperia NX SO-02D => fuji_nozomi_dcm_defconfig
     Xperia S => fuji_nozomi_defconfig
+
+    Xperia PLAY => semc_zeus_defconfig
+    Xperia arc => semc_anzu_defconfig
+    Xperia neo => semc_hallon_defconfig
+    Xperia acro => semc_azusa_defconfig
+    Xperia acro IS11S => semc_akane_defconfig
