@@ -739,23 +739,16 @@ static int msm_adc_blocking_conversion(struct msm_adc_drv *msm_adc,
 	struct msm_adc_platform_data *pdata =
 					msm_adc_drv->pdev->dev.platform_data;
 	struct msm_adc_channels *channel = &pdata->channel[hwmon_chan];
-	/*
-		workaround fix
-		It will be removed when root cause will be fixed.
-	*/
-	int ret;
 
-	mutex_lock(&first_lock);
 	if (!conv_first_request) {
-		ret = pm8058_xoadc_calib_device(channel->adc_dev_instance);
+		/* ret = pm8058_xoadc_calib_device(channel->adc_dev_instance);
 		if (ret) {
 			mutex_unlock(&first_lock);
 			pr_err("pmic8058 xoadc calibration failed, retry\n");
 			return ret;
-		}
+		} */
 		conv_first_request = 1;
 	}
-	mutex_unlock(&first_lock);
 
 	channel->adc_access_fn->adc_slot_request(channel->adc_dev_instance,
 									&slot);
@@ -846,23 +839,16 @@ int32_t adc_channel_request_conv(void *h, struct completion *conv_complete_evt)
 					msm_adc_drv->pdev->dev.platform_data;
 	struct msm_adc_channels *channel = &pdata->channel[client->adc_chan];
 	struct adc_conv_slot *slot;
-	/*
-		workaround fix
-		It will be removed when root cause will be fixed.
-	*/
-	int ret;
 
-	mutex_lock(&first_lock);
 	if (!conv_first_request) {
-		ret = pm8058_xoadc_calib_device(channel->adc_dev_instance);
+		/* ret = pm8058_xoadc_calib_device(channel->adc_dev_instance);
 		if (ret) {
 			mutex_unlock(&first_lock);
 			pr_err("pmic8058 xoadc calibration failed, retry\n");
 			return ret;
-		}
+		} */
 		conv_first_request = 1;
 	}
-	mutex_unlock(&first_lock);
 
 	channel->adc_access_fn->adc_slot_request(channel->adc_dev_instance,
 									&slot);
