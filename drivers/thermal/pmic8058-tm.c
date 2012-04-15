@@ -9,11 +9,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
  */
 /*
  * Qualcomm PMIC8058 Thermal Manager driver
@@ -356,13 +351,12 @@ static int pm8058_tm_init_reg(struct pm8058_tm_device *tm)
 
 static int __devinit pmic8058_tm_probe(struct platform_device *pdev)
 {
-	DECLARE_COMPLETION_ONSTACK(wait);
 	struct pm8058_tm_device *tmdev;
 	struct pm8058_chip *pm_chip;
 	unsigned int irq;
 	int rc;
 
-	pm_chip = platform_get_drvdata(pdev);
+	pm_chip = dev_get_drvdata(pdev->dev.parent);
 	if (pm_chip == NULL) {
 		pr_err("%s: no driver data passed in.\n", __func__);
 		return -EFAULT;
@@ -386,10 +380,6 @@ static int __devinit pmic8058_tm_probe(struct platform_device *pdev)
 		kfree(tmdev);
 		return rc;
 	}
-
-	/* calibrate the die temperature sensor */
-	if (adc_calib_request(tmdev->adc_handle, &wait) == CALIB_STARTED)
-		wait_for_completion(&wait);
 
 	tmdev->pm_chip = pm_chip;
 	tmdev->tz_dev = thermal_zone_device_register("pm8058_tz",

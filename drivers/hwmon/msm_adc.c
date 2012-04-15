@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -8,11 +8,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
  */
 
 #include <linux/kernel.h>
@@ -86,7 +81,6 @@ struct msm_adc_drv {
 	struct workqueue_struct		*wq;
 	atomic_t			online;
 	atomic_t			total_outst;
-	atomic_t			registered;
 	wait_queue_head_t		total_outst_wait;
 
 	/*  EPM variables  */
@@ -104,12 +98,7 @@ static bool epm_fluid_enabled;
 /* Needed to support file_op interfaces */
 static struct msm_adc_drv *msm_adc_drv;
 
-/*
- workaround fix
- It will be removed when root cause will be fixed.
-*/
-static int conv_first_request;
-static DEFINE_MUTEX(first_lock);
+static bool conv_first_request;
 
 static ssize_t msm_adc_show_curr(struct device *dev,
 				struct device_attribute *devattr, char *buf);
@@ -739,23 +728,16 @@ static int msm_adc_blocking_conversion(struct msm_adc_drv *msm_adc,
 	struct msm_adc_platform_data *pdata =
 					msm_adc_drv->pdev->dev.platform_data;
 	struct msm_adc_channels *channel = &pdata->channel[hwmon_chan];
-	/*
-		workaround fix
-		It will be removed when root cause will be fixed.
-	*/
-	int ret;
+	int ret = 0;
 
-	mutex_lock(&first_lock);
-	if (!conv_first_request) {
+	if (conv_first_request) {
 		ret = pm8058_xoadc_calib_device(channel->adc_dev_instance);
 		if (ret) {
-			mutex_unlock(&first_lock);
 			pr_err("pmic8058 xoadc calibration failed, retry\n");
 			return ret;
 		}
-		conv_first_request = 1;
+		conv_first_request = false;
 	}
-	mutex_unlock(&first_lock);
 
 	channel->adc_access_fn->adc_slot_request(channel->adc_dev_instance,
 									&slot);
@@ -769,7 +751,7 @@ static int msm_adc_blocking_conversion(struct msm_adc_drv *msm_adc,
 		slot->chan_adc_calib = channel->adc_calib_type;
 		queue_work(msm_adc_drv->wq, &slot->work);
 
-		wait_for_completion(&slot->comp);
+		wait_for_completion_interruptible(&slot->comp);
 		*result = slot->conv.result;
 		channel->adc_access_fn->adc_restore_slot(
 					channel->adc_dev_instance, slot);
@@ -788,9 +770,6 @@ int32_t adc_channel_open(uint32_t channel, void **h)
 
 	if (!msm_adc_drv)
 		return -EFAULT;
-
-	if (!atomic_read(&msm_adc->registered))
-		return -ENODEV;
 
 #ifdef CONFIG_PMIC8058_XOADC
 	if (pm8058_xoadc_registered() <= 0)
@@ -846,23 +825,16 @@ int32_t adc_channel_request_conv(void *h, struct completion *conv_complete_evt)
 					msm_adc_drv->pdev->dev.platform_data;
 	struct msm_adc_channels *channel = &pdata->channel[client->adc_chan];
 	struct adc_conv_slot *slot;
-	/*
-		workaround fix
-		It will be removed when root cause will be fixed.
-	*/
 	int ret;
 
-	mutex_lock(&first_lock);
-	if (!conv_first_request) {
+	if (conv_first_request) {
 		ret = pm8058_xoadc_calib_device(channel->adc_dev_instance);
 		if (ret) {
-			mutex_unlock(&first_lock);
 			pr_err("pmic8058 xoadc calibration failed, retry\n");
 			return ret;
 		}
-		conv_first_request = 1;
+		conv_first_request = false;
 	}
-	mutex_unlock(&first_lock);
 
 	channel->adc_access_fn->adc_slot_request(channel->adc_dev_instance,
 									&slot);
@@ -919,46 +891,6 @@ int32_t adc_channel_read_result(void *h, struct adc_chan_result *chan_result)
 		channel[slot->conv.result.chan].adc_dev_instance, slot);
 
 	return rc;
-}
-
-int32_t adc_calib_request(void *h, struct completion *calib_complete_evt)
-{
-	struct msm_client_data *client = (struct msm_client_data *)h;
-	struct msm_adc_platform_data *pdata =
-					msm_adc_drv->pdev->dev.platform_data;
-	struct msm_adc_channels *channel = &pdata->channel[client->adc_chan];
-	struct adc_conv_slot *slot;
-	int rc, calib_status;
-
-	channel->adc_access_fn->adc_slot_request(channel->adc_dev_instance,
-				&slot);
-	if (slot) {
-		slot->conv.result.chan = client->adc_chan;
-		slot->blocking = 0;
-		slot->compk = calib_complete_evt;
-		slot->adc_request = START_OF_CALIBRATION;
-		slot->chan_path = channel->chan_path_type;
-		slot->chan_adc_config = channel->adc_config_type;
-		slot->chan_adc_calib = channel->adc_calib_type;
-		rc = channel->adc_access_fn->adc_calibrate(
-			channel->adc_dev_instance, slot, &calib_status);
-
-		if (calib_status == CALIB_NOT_REQUIRED) {
-			channel->adc_access_fn->adc_restore_slot(
-					channel->adc_dev_instance, slot);
-			/* client will always wait in case when
-				calibration is not required */
-			complete(calib_complete_evt);
-		} else {
-			atomic_inc(&msm_adc_drv->total_outst);
-			mutex_lock(&client->lock);
-			client->num_outstanding++;
-			mutex_unlock(&client->lock);
-		}
-
-		return rc;
-	}
-	return -EBUSY;
 }
 
 static void msm_rpc_adc_conv_cb(void *context, u32 param,
@@ -1448,7 +1380,7 @@ static struct platform_driver msm_adc_rpcrouter_remote_driver = {
 	},
 };
 
-static int msm_adc_probe(struct platform_device *pdev)
+static int __devinit msm_adc_probe(struct platform_device *pdev)
 {
 	struct msm_adc_platform_data *pdata = pdev->dev.platform_data;
 	struct msm_adc_drv *msm_adc;
@@ -1469,7 +1401,7 @@ static int msm_adc_probe(struct platform_device *pdev)
 	msm_adc_drv = msm_adc;
 	msm_adc->pdev = pdev;
 
-	if (pdata->target_hw == MSM_8x60) {
+	if (pdata->target_hw == MSM_8x60 || pdata->target_hw == FSM_9xxx) {
 		rc = msm_adc_init_hwmon(pdev, msm_adc);
 		if (rc) {
 			dev_err(&pdev->dev, "msm_adc_dev_init failed\n");
@@ -1508,8 +1440,8 @@ static int msm_adc_probe(struct platform_device *pdev)
 		else
 			msm_rpc_adc_init(pdev);
 	}
+	conv_first_request = true;
 
-	atomic_set(&msm_adc->registered, 1);
 	pr_info("msm_adc successfully registered\n");
 
 	return 0;
@@ -1529,8 +1461,6 @@ static int __devexit msm_adc_remove(struct platform_device *pdev)
 	atomic_set(&msm_adc->online, 0);
 
 	atomic_set(&msm_adc->rpc_online, 0);
-
-	atomic_set(&msm_adc->registered, 0);
 
 	misc_deregister(&msm_adc->misc);
 
