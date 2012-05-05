@@ -745,7 +745,7 @@ config TOUCHSCREEN_CYTTSP_KEY
 	help
 	  Activated for Cypress TTSP touchkey function
 
-+config TOUCHSCREEN_CY8CTMA300_SPI
+config TOUCHSCREEN_CY8CTMA300_SPI
 	default n
 	depends on SPI_MASTER
 	tristate "Cypress CY8CTMA300 spi touchscreen"
