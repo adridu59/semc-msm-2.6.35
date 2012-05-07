@@ -2347,7 +2347,7 @@ static int cyttsp_xres(void)
 
 static int cyttsp_platform_init(struct i2c_client *client)
 {
-	int on;
+	int on = 0;
 	int rc = -1;
 	if (on) {
 		if (gpio_request(CYPRESS_TOUCH_GPIO_IRQ, "ttsp_irq"))
