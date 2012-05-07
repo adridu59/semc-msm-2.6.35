@@ -130,6 +130,12 @@
 struct registers {
 	int range;
 	int bw_sel;
+	int int_mode_ctrl;
+	int int_enable1;
+	int int_enable2;
+	int int_pin1;
+	int int_new_data;
+	int int_pin2;
 };
 
 /**
