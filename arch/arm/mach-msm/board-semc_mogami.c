@@ -2345,7 +2345,7 @@ static int cyttsp_xres(void)
 	return 0;
 }
 
-static int cyttsp_platform_init(struct i2c_client *client)
+static int cyttsp_platform_init(struct spi_device *spi)
 {
 	int on = 0;
 	int rc = -1;
