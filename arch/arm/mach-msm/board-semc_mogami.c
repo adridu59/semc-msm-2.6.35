@@ -2427,7 +2427,7 @@ static int __init cyttsp_key_init(void)
 }
 module_init(cyttsp_key_init);
 
-static int cyttsp_key_rpc_callback(u8 data[], int size)
+#if 0 /* static int cyttsp_key_rpc_callback(u8 data[], int size) */
 {
 	static u8 last;
 	u8 toggled = last ^ data[0];
@@ -2441,6 +2441,7 @@ static int cyttsp_key_rpc_callback(u8 data[], int size)
 	last = data[0];
 	return 0;
 }
+#endif
 #endif /* CONFIG_TOUCHSCREEN_CYTTSP_KEY */
 
 static struct cyttsp_platform_data cyttsp_data = {
