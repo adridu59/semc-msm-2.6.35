@@ -452,14 +452,17 @@ struct cyttsp_platform_data {
 	u8 use_mt;
 	u8 use_hndshk;
 	u8 use_trk_id;
+	u8 use_timer;
 	u8 use_sleep;
 	u8 use_gestures;
+	u8 use_load_file;
+	u8 use_force_fw_update;
 	u8 gest_set;
 	u8 act_intrvl;
 	u8 tch_tmout;
 	u8 lp_intrvl;
 	u8 power_state;
-	bool wakeup;
+	int (*wakeup)(void);
 	const char *fw_fname;
 	bool disable_ghost_det;
 #ifdef CY_USE_I2C_DRIVER
