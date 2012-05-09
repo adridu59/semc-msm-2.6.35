@@ -2413,7 +2413,6 @@ static struct cypress_touch_platform_data cypress_touch_data = {
 	.x_max = CONFIG_CY8CTMA300_SPI_MAX_X,
 	.y_max = CONFIG_CY8CTMA300_SPI_MAX_Y,
 	.z_max = CONFIG_CY8CTMA300_SPI_MAX_Z,
-	.width_major = CONFIG_CY8CTMA300_SPI_WIDTH_MAJOR,
 	.gpio_init = cypress_touch_gpio_init,
 	.gpio_irq_pin = CYPRESS_TOUCH_GPIO_IRQ,
 	.gpio_reset_pin = CYPRESS_TOUCH_GPIO_RESET,
