@@ -94,6 +94,7 @@
 #endif
 #include <linux/leds-as3676.h>
 #include "board-semc_mogami-leds.h"
+#include "board-semc_mogami-touch.h"
 #include <linux/i2c/bq24185_charger.h>
 #include <linux/i2c/bq27520_battery.h>
 #ifdef CONFIG_INPUT_BMA150
@@ -118,6 +119,12 @@
 #endif
 #if defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD)
 #include <linux/mddi_hitachi_r61529_hvga.h>
+#endif
+#if defined(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD)
+#include <linux/mddi_sii_r61529_hvga.h>
+#endif
+#if defined(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)
+#include <linux/mddi_auo_s6d05a1_hvga.h>
 #endif
 #ifdef CONFIG_SIMPLE_REMOTE_PLATFORM
 #include <mach/simple_remote_msm7x30_pf.h>
@@ -154,7 +161,9 @@
 #define NOVATEK_GPIO_RESET		(157)
 
 #if defined(CONFIG_FB_MSM_MDDI_SONY_HVGA_LCD) || \
-	defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD)
+	defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD) || \
+	defined(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD) || \
+	defined(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)
 #define GPIO_MSM_MDDI_XRES		(157)
 #endif
 
@@ -2108,7 +2117,9 @@ static struct sii9024_platform_data sii9024_platform_data = {
 #endif /* CONFIG_FB_MSM_HDMI_SII9024A_PANEL */
 
 #if defined(CONFIG_FB_MSM_MDDI_SONY_HVGA_LCD) || \
-	defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD)
+	defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD) || \
+	defined(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD) || \
+	defined(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)
 /*  Generic LCD Regulators On function for SEMC mogami displays */
 static void semc_mogami_lcd_regulators_on(void)
 {
@@ -2134,7 +2145,9 @@ static void semc_mogami_lcd_power_on(u8 delay1, u8 delay2, u8 delay3)
 	mdelay(delay3);
 }
 #endif  /* (CONFIG_FB_MSM_MDDI_SONY_HVGA_LCD) ||
-	(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD) */
+	(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD) ||
+	(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD) ||
+	(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)*/
 
 #if defined(CONFIG_FB_MSM_MDDI_SONY_HVGA_LCD)
 /* Display resolutin */
@@ -2221,12 +2234,14 @@ static struct msm_fb_panel_data hitachi_hvga_panel_data = {
 		.type = MDDI_PANEL,
 		.wait_cycle = 0,
 		.bpp = 24,
-		.clk_rate = 153600000,
-		.clk_min =  150000000,
-		.clk_max =  160000000,
+		.clk_rate = 192000000,
+		.clk_min =  190000000,
+		.clk_max =  200000000,
 		.fb_num = 2,
 		.bl_max = 4,
 		.bl_min = 1,
+		.width = 42,
+		.height = 63,
 	},
 };
 
@@ -2248,6 +2263,140 @@ static struct platform_device mddi_hitachi_hvga_display_device = {
 };
 #endif   /* CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD  */
 
+#if defined(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD)
+/* Display resolution */
+#define SII_HVGA_PANEL_XRES 320
+#define SII_HVGA_PANEL_YRES 480
+
+static void sii_hvga_lcd_power_on(void)
+{
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 0);
+	semc_mogami_lcd_regulators_on();
+	msleep(1);           /* spec > 310us*/
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 1);
+	msleep(11); /* spec > 10 */
+}
+
+static void sii_hvga_lcd_power_off(void)
+{
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 0);
+	msleep(121); /* spec > 120ms */
+	vreg_helper_off("gp7");  /* L8 */
+	vreg_helper_off("gp6");  /* L15 */
+}
+
+static void sii_hvga_lcd_exit_deep_standby(void)
+{
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 0);
+	msleep(2);   /* spec: > 1ms */
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 1);
+	msleep(6);  /* spec: > 5 ms */
+}
+
+static struct msm_fb_panel_data sii_hvga_panel_data = {
+	.panel_info = {
+		.xres = SII_HVGA_PANEL_XRES,
+		.yres = SII_HVGA_PANEL_YRES,
+		.pdest = DISPLAY_1,
+		.type = MDDI_PANEL,
+		.wait_cycle = 0,
+		.bpp = 24,
+		.clk_rate = 192000000,
+		.clk_min =  190000000,
+		.clk_max =  200000000,
+		.fb_num = 2,
+		.bl_max = 4,
+		.bl_min = 1,
+		.width = 42,
+		.height = 63,
+	},
+};
+
+static struct sii_hvga_platform_data sii_hvga_panel_ext = {
+	.power_on = sii_hvga_lcd_power_on,
+	.power_off = sii_hvga_lcd_power_off,
+	.exit_deep_standby = sii_hvga_lcd_exit_deep_standby,
+	.dbc_on = 1,
+	.dbc_mode = DBC_MODE_VIDEO,
+	.panel_data = &sii_hvga_panel_data,
+};
+
+static struct platform_device mddi_sii_hvga_display_device = {
+	.name = MDDI_SII_R61529_HVGA_NAME,
+	.id = -1,
+	.dev = {
+		.platform_data = &sii_hvga_panel_ext,
+	}
+};
+#endif   /* CONFIG_FB_MSM_MDDI_SII_HVGA_LCD  */
+
+#if defined(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)
+/* Display resolution */
+#define AUO_HVGA_PANEL_XRES 320
+#define AUO_HVGA_PANEL_YRES 480
+
+static void auo_hvga_lcd_power_on(void)
+{
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 0);
+	semc_mogami_lcd_regulators_on();
+	msleep(2);           /* spec > 1 ms*/
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 1);
+	msleep(51); /* spec > 50 ms */
+}
+
+static void auo_hvga_lcd_power_off(void)
+{
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 0);
+	msleep(121); /* spec > 120ms */
+	vreg_helper_off("gp7");  /* L8 */
+	vreg_helper_off("gp6");  /* L15 */
+}
+
+static void auo_hvga_lcd_exit_deep_standby(void)
+{
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 0);
+	msleep(2);   /* spec: > 1ms */
+	gpio_set_value(GPIO_MSM_MDDI_XRES, 1);
+	msleep(51);  /* spec: > 50 ms */
+}
+
+static struct msm_fb_panel_data auo_hvga_panel_data = {
+	.panel_info = {
+		.xres = AUO_HVGA_PANEL_XRES,
+		.yres = AUO_HVGA_PANEL_YRES,
+		.pdest = DISPLAY_1,
+		.type = MDDI_PANEL,
+		.wait_cycle = 0,
+		.bpp = 24,
+		.clk_rate = 192000000,
+		.clk_min =  190000000,
+		.clk_max =  200000000,
+		.fb_num = 2,
+		.bl_max = 4,
+		.bl_min = 1,
+		.width = 42,
+		.height = 63,
+	},
+};
+
+static struct auo_hvga_platform_data auo_hvga_panel_ext = {
+	.power_on = auo_hvga_lcd_power_on,
+	.power_off = auo_hvga_lcd_power_off,
+	.exit_deep_standby = auo_hvga_lcd_exit_deep_standby,
+	.dbc_on = 1,
+	.dbc_mode = DBC_MODE_VIDEO,
+	.panel_data = &auo_hvga_panel_data,
+};
+
+static struct platform_device mddi_auo_hvga_display_device = {
+	.name = MDDI_AUO_S6D05A1_HVGA_NAME,
+	.id = -1,
+	.dev = {
+		.platform_data = &auo_hvga_panel_ext,
+	}
+};
+#endif   /* CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD  */
+
 #if defined(CONFIG_TOUCHSCREEN_CY8CTMA300_SPI) || \
 	defined(CONFIG_TOUCHSCREEN_CYTTSP_SPI)
 struct msm_gpio ttsp_gpio_cfg_data[] = {
@@ -2264,6 +2413,7 @@ static struct cypress_touch_platform_data cypress_touch_data = {
 	.x_max = CONFIG_CY8CTMA300_SPI_MAX_X,
 	.y_max = CONFIG_CY8CTMA300_SPI_MAX_Y,
 	.z_max = CONFIG_CY8CTMA300_SPI_MAX_Z,
+	.width_major = CONFIG_CY8CTMA300_SPI_WIDTH_MAJOR,
 	.gpio_init = cypress_touch_gpio_init,
 	.gpio_irq_pin = CYPRESS_TOUCH_GPIO_IRQ,
 	.gpio_reset_pin = CYPRESS_TOUCH_GPIO_RESET,
@@ -2314,7 +2464,7 @@ static int cypress_touch_spi_cs_set(bool val)
 #endif /* CONFIG_TOUCHSCREEN_CY8CTMA300_SPI */
 
 #ifdef CONFIG_TOUCHSCREEN_CYTTSP_SPI
-static int cyttsp_xres(void)
+int cyttsp_xres(void)
 {
 	int polarity;
 	int rc;
@@ -2333,13 +2483,12 @@ static int cyttsp_xres(void)
 		       __func__, rc);
 		return -EIO;
 	}
-	udelay(250);
+	msleep(1);
 	gpio_set_value(CYPRESS_TOUCH_GPIO_RESET, polarity);
-	msleep(50);
 	return 0;
 }
 
-static int cyttsp_init(int on)
+int cyttsp_init(int on)
 {
 	int rc = -1;
 	if (on) {
@@ -2352,15 +2501,10 @@ static int cyttsp_init(int on)
 					ARRAY_SIZE(ttsp_gpio_cfg_data));
 		if (rc)
 			goto ttsp_gpio_cfg_err;
-
-		rc = cyttsp_xres();
-		if (rc)
-			goto ttsp_err;
 		return 0;
 	} else {
 		rc = 0;
 	}
-ttsp_err:
 ttsp_gpio_cfg_err:
 	gpio_free(CYPRESS_TOUCH_GPIO_RESET);
 ttsp_reset_err:
@@ -2369,7 +2513,7 @@ ttsp_irq_err:
 	return rc;
 }
 
-static int cyttsp_wakeup(void)
+int cyttsp_wakeup(void)
 {
 	int ret;
 
@@ -2379,9 +2523,13 @@ static int cyttsp_wakeup(void)
 		__func__);
                 return ret;
 	}
-	msleep(10);
+	msleep(50);
 	gpio_set_value(CYPRESS_TOUCH_GPIO_IRQ, 0);
-	udelay(250);
+	msleep(1);
+	gpio_set_value(CYPRESS_TOUCH_GPIO_IRQ, 1);
+	udelay(100);
+	gpio_set_value(CYPRESS_TOUCH_GPIO_IRQ, 0);
+	msleep(1);
 	gpio_set_value(CYPRESS_TOUCH_GPIO_IRQ, 1);
 	printk(KERN_INFO "%s: wakeup\n", __func__);
 	ret = gpio_direction_input(CYPRESS_TOUCH_GPIO_IRQ);
@@ -2390,13 +2538,14 @@ static int cyttsp_wakeup(void)
 		__func__);
 		return ret;
 	}
-	msleep(3);
+	msleep(50);
 	return 0;
 }
 
 #ifdef CONFIG_TOUCHSCREEN_CYTTSP_KEY
 #define TT_KEY_BACK_FLAG	0x01
 #define TT_KEY_MENU_FLAG	0x02
+#define TT_KEY_HOME_FLAG	0x04
 
 static struct input_dev *input_dev_cyttsp_key;
 
@@ -2411,6 +2560,7 @@ static int __init cyttsp_key_init(void)
 	input_dev_cyttsp_key->phys = "/sys/bus/spi/devices/spi0.0/";
 	input_set_capability(input_dev_cyttsp_key, EV_KEY, KEY_MENU);
 	input_set_capability(input_dev_cyttsp_key, EV_KEY, KEY_BACK);
+	input_set_capability(input_dev_cyttsp_key, EV_KEY, KEY_HOME);
 	if (input_register_device(input_dev_cyttsp_key)) {
 		pr_err("%s: Error, unable to reg cyttsp key device\n", __func__);
 		input_free_device(input_dev_cyttsp_key);
@@ -2420,63 +2570,28 @@ static int __init cyttsp_key_init(void)
 }
 module_init(cyttsp_key_init);
 
-static int cyttsp_key_rpc_callback(u8 data[], int size)
+int cyttsp_key_rpc_callback(u8 data[], int size)
 {
 	static u8 last;
 	u8 toggled = last ^ data[0];
 
 	if (toggled & TT_KEY_MENU_FLAG)
-		input_report_key(input_dev_cyttsp_key, KEY_MENU, !!(*data & TT_KEY_MENU_FLAG));
+		input_report_key(input_dev_cyttsp_key, KEY_MENU,
+			!!(*data & TT_KEY_MENU_FLAG));
 
 	if (toggled & TT_KEY_BACK_FLAG)
-		input_report_key(input_dev_cyttsp_key, KEY_BACK, !!(*data & TT_KEY_BACK_FLAG));
+		input_report_key(input_dev_cyttsp_key, KEY_BACK,
+			!!(*data & TT_KEY_BACK_FLAG));
+
+	if (toggled & TT_KEY_HOME_FLAG)
+		input_report_key(input_dev_cyttsp_key, KEY_HOME,
+			!!(*data & TT_KEY_HOME_FLAG));
 
 	last = data[0];
 	return 0;
 }
 #endif /* CONFIG_TOUCHSCREEN_CYTTSP_KEY */
 
-static struct cyttsp_platform_data cyttsp_data = {
-	.wakeup = cyttsp_wakeup,
-	.init = cyttsp_init,
-	.mt_sync = input_mt_sync,
-#ifdef CONFIG_TOUCHSCREEN_CYTTSP_KEY
-	.cust_spec = cyttsp_key_rpc_callback,
-#endif
-	/* TODO: max values should be retrieved from the firmware */
-	.maxx = CONFIG_TOUCHSCREEN_CYTTSP_MAX_X,
-	.maxy = CONFIG_TOUCHSCREEN_CYTTSP_MAX_Y,
-	.maxz = CONFIG_TOUCHSCREEN_CYTTSP_MAX_Z,
-	.flags = 0,
-	.gen = CY_GEN3,
-	.use_st = 0,
-	.use_mt = 1,
-	.use_trk_id = 0,
-	.use_hndshk = 0,
-	.use_timer = 0,
-	.use_sleep = 1,
-	.use_gestures = 0,
-	.use_load_file = 1,
-	.use_force_fw_update = 0,
-	/* activate up to 4 groups
-	 * and set active distance
-	 */
-	.gest_set = CY_GEST_GRP_NONE | CY_ACT_DIST,
-	/* change act_intrvl to customize the Active power state
-	 * scanning/processing refresh interval for Operating mode
-	 */
-	.act_intrvl = CY_ACT_INTRVL_DFLT,
-	/* change tch_tmout to customize the touch timeout for the
-	 * Active power state for Operating mode
-	 */
-	.tch_tmout = CY_TCH_TMOUT_DFLT,
-	/* change lp_intrvl to customize the Low Power power state
-	 * scanning/processing refresh interval for Operating mode
-	 */
-	.lp_intrvl = CY_LP_INTRVL_DFLT,
-	.name = CY_SPI_NAME,
-	.irq_gpio = CYPRESS_TOUCH_GPIO_IRQ,
-};
 #endif /* CONFIG_TOUCHSCREEN_CYTTSP_SPI */
 
 #ifdef CONFIG_TOUCHSCREEN_CLEARPAD3000_I2C
@@ -2758,9 +2873,11 @@ static struct registers bma250_reg_setup = {
 	.int_mode_ctrl        = BMA250_MODE_SLEEP_50MS,
 	.int_enable1          = BMA250_INT_SLOPE_Z |
 				BMA250_INT_SLOPE_Y |
-				BMA250_INT_SLOPE_X,
+				BMA250_INT_SLOPE_X |
+				BMA250_INT_ORIENT,
 	.int_enable2          = BMA250_INT_NEW_DATA,
-	.int_pin1             = BMA250_INT_PIN1_SLOPE,
+	.int_pin1             = BMA250_INT_PIN1_SLOPE |
+				BMA250_INT_PIN1_ORIENT,
 	.int_new_data         = BMA250_INT_PIN1,
 	.int_pin2             = -1,
 };
@@ -3762,6 +3879,12 @@ static struct platform_device *devices[] __initdata = {
 #if defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD)
 	&mddi_hitachi_hvga_display_device,
 #endif
+#if defined(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD)
+	&mddi_sii_hvga_display_device,
+#endif
+#if defined(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)
+	&mddi_auo_hvga_display_device,
+#endif
 #ifdef CONFIG_PMIC_TIME
 	&pmic_time_device,
 #endif /* CONFIG_PMIC_TIME */
@@ -3827,11 +3950,7 @@ static void qup_i2c_gpio_config(int adap_id, int config_type)
 }
 
 static struct msm_i2c_platform_data msm_i2c_pdata = {
-#ifdef CONFIG_FB_MSM_HDMI_SII9024A_PANEL
 	.clk_freq = 100000,
-#else
-	.clk_freq = 384000,
-#endif
 	.pri_clk = 70,
 	.pri_dat = 71,
 	.rmutex = 1,
@@ -4378,8 +4497,12 @@ static void __init msm7x30_init(void)
 	msm_device_ssbi7.dev.platform_data = &msm_i2c_ssbi7_pdata;
 
 #if defined(CONFIG_FB_MSM_MDDI_SONY_HVGA_LCD) || \
-	defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD)
+	defined(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD) || \
+	defined(CONFIG_FB_MSM_MDDI_SII_HVGA_LCD)
 	semc_mogami_lcd_power_on(11, 2, 21);
+#endif
+#if defined(CONFIG_FB_MSM_MDDI_AUO_HVGA_LCD)
+	semc_mogami_lcd_power_on(2, 21, 51);
 #endif
 }
 
