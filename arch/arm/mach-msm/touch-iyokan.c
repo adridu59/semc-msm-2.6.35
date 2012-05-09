@@ -1,4 +1,4 @@
-/* /kernel/arch/arm/mach-msm/touch-mango.c
+/* /kernel/arch/arm/mach-msm/touch-iyohan.c
  *
  * Copyright (C) [2010-2011] Sony Ericsson Mobile Communications AB.
  *
@@ -16,7 +16,6 @@ struct cyttsp_platform_data cyttsp_data = {
 	.wakeup = cyttsp_wakeup,
 	.init = cyttsp_init,
 	.mt_sync = input_mt_sync,
-	.cust_spec = cyttsp_key_rpc_callback,
 	/* TODO: max values should be retrieved from the firmware */
 	.maxx = CONFIG_TOUCHSCREEN_CYTTSP_MAX_X,
 	.maxy = CONFIG_TOUCHSCREEN_CYTTSP_MAX_Y,
@@ -53,3 +52,4 @@ struct cyttsp_platform_data cyttsp_data = {
 	.reset = cyttsp_xres,
 	.idac_gain = 0,
 };
+
