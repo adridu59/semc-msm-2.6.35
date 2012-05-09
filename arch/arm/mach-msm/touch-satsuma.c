@@ -1,4 +1,4 @@
-/* /kernel/arch/arm/mach-msm/touch-mango.c
+/* /kernel/arch/arm/mach-msm/touch-satsuma.c
  *
  * Copyright (C) [2010-2011] Sony Ericsson Mobile Communications AB.
  *
@@ -53,3 +53,4 @@ struct cyttsp_platform_data cyttsp_data = {
 	.reset = cyttsp_xres,
 	.idac_gain = 0,
 };
+

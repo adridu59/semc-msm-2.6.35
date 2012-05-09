@@ -1,4 +1,4 @@
-/* /kernel/arch/arm/mach-msm/touch-mango.c
+/* /kernel/arch/arm/mach-msm/touch-smultron.c
  *
  * Copyright (C) [2010-2011] Sony Ericsson Mobile Communications AB.
  *
@@ -51,5 +51,6 @@ struct cyttsp_platform_data cyttsp_data = {
 	.name = CY_SPI_NAME,
 	.irq_gpio = 42,
 	.reset = cyttsp_xres,
-	.idac_gain = 0,
+	.idac_gain = 4,
 };
+
