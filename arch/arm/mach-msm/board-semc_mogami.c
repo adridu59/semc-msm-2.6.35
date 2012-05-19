@@ -3366,11 +3366,6 @@ static struct kgsl_cpufreq_voter kgsl_cpufreq_voter = {
 };
 
 static struct kgsl_core_platform_data kgsl_core_pdata = {
-	.imem_clk_name = {
-		.clk = "imem_clk",
-		.pclk = NULL,
-	};
-
 	.pt_va_base = 0x66000000,
 #ifdef CONFIG_KGSL_PER_PROCESS_PAGE_TABLE
 	.pt_va_size = SZ_32M,
@@ -3403,6 +3398,10 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 			.pclk = "grp_pclk",
 		},
 	},
+	.imem_clk_name = {
+		.clk = "imem_clk",
+		.pclk = NULL,
+	};
 };
 
 static struct kgsl_device_platform_data kgsl_2d0_pdata = {
