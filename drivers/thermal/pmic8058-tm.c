@@ -356,7 +356,6 @@ static int pm8058_tm_init_reg(struct pm8058_tm_device *tm)
 
 static int __devinit pmic8058_tm_probe(struct platform_device *pdev)
 {
-	DECLARE_COMPLETION_ONSTACK(wait);
 	struct pm8058_tm_device *tmdev;
 	struct pm8058_chip *pm_chip;
 	unsigned int irq;
@@ -386,10 +385,6 @@ static int __devinit pmic8058_tm_probe(struct platform_device *pdev)
 		kfree(tmdev);
 		return rc;
 	}
-
-	/* calibrate the die temperature sensor */
-	if (adc_calib_request(tmdev->adc_handle, &wait) == CALIB_STARTED)
-		wait_for_completion(&wait);
 
 	tmdev->pm_chip = pm_chip;
 	tmdev->tz_dev = thermal_zone_device_register("pm8058_tz",
