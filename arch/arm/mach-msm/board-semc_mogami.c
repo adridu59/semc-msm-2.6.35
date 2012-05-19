@@ -3411,7 +3411,7 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	.imem_clk_name = {
 		.clk = "imem_clk",
 		.pclk = NULL,
-	};
+	},
 };
 
 static struct platform_device msm_kgsl_3d0 = {
