@@ -168,8 +168,7 @@
 #endif
 
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
-#define MSM_RAM_CONSOLE_START   (0x50000000 - MSM_RAM_CONSOLE_SIZE)
-#define MSM_RAM_CONSOLE_SIZE    (128 * SZ_1K)
+#define MSM_RAM_CONSOLE_SIZE    256*1024
 #endif
 
 #define MSM_PMEM_SF_SIZE	0x1700000
@@ -3763,9 +3762,9 @@ static void __init msm_fb_add_devices(void)
 
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
 static struct resource ram_console_resources[] = {
-	[0] = {
-		.start  = MSM_RAM_CONSOLE_START,
-		.end    = MSM_RAM_CONSOLE_START+MSM_RAM_CONSOLE_SIZE-1,
+	{
+		.start  = 0,
+		.end    = 0,
 		.flags  = IORESOURCE_MEM,
 	},
 };
@@ -3773,18 +3772,9 @@ static struct resource ram_console_resources[] = {
 static struct platform_device ram_console_device = {
 	.name           = "ram_console",
 	.id             = -1,
+	.num_resources  = ARRAY_SIZE(ram_console_resources),
+	.resource       = ram_console_resources,
 };
-
-static void ram_console_reserve_mem(void)
-{
-	if(reserve_bootmem(MSM_RAM_CONSOLE_START, MSM_RAM_CONSOLE_SIZE,
-						BOOTMEM_EXCLUSIVE)) {
-		printk(KERN_ERR "ram_console reserve memory failed\n");
-		return;
-	}
-	ram_console_device.num_resources  = ARRAY_SIZE(ram_console_resources);
-	ram_console_device.resource       = ram_console_resources;
-}
 #endif
 
 #ifdef CONFIG_PMIC_TIME
@@ -4646,15 +4636,19 @@ static void __init msm7x30_allocate_memory_regions(void)
 			" ebi1 pmem arena\n", size, addr, __pa(addr));
 	}
 
+	size = MSM_RAM_CONSOLE_SIZE;
+		addr = alloc_bootmem(size);
+		ram_console_resources[0].start=(int)addr; //__pa(addr);
+		ram_console_resources[0].end =ram_console_resources[0].start + size - 1;
+		pr_info("allocating %lu bytes at %p (%lx physical) for ram_console\n",
+			size, addr, __pa(addr));
+
 }
 
 static void __init msm7x30_map_io(void)
 {
 	msm_shared_ram_phys = 0x00100000;
 	msm_map_msm7x30_io();
-#ifdef CONFIG_ANDROID_RAM_CONSOLE
-	ram_console_reserve_mem();
-#endif
 	msm7x30_allocate_memory_regions();
 }
 

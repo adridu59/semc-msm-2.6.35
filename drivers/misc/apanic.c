@@ -299,6 +299,7 @@ static void mtd_panic_notify_add(struct mtd_info *mtd)
 	int rc;
 	int    proc_entry_created = 0;
 
+	printk("mtd_panic_notify_add %s\n",mtd->name);
 	if (strcmp(mtd->name, CONFIG_APANIC_PLABEL))
 		return;
 

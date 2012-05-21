@@ -636,6 +636,11 @@ static int mmc_blk_probe(struct mmc_card *card)
 	mmc_set_bus_resume_policy(card->host, 1);
 #endif
 	add_disk(md->disk);
+
+#ifdef CONFIG_APANIC
+	if (!strcmp(md->disk->disk_name, "mmcblk0"))
+		mmc_panic_save_card(card);
+#endif
 	return 0;
 
  out:
